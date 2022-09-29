@@ -12,6 +12,7 @@ namespace Shos.PluginSample
     {
         const string namePropertyName = "Name";
         const string runMethodName    = "Run";
+        const string codeFileName     = "Plugin.cs";
 
         public static IEnumerable<(object instance, string name, MethodInfo runMethod)> GetPlugins()
             => GetPluginAssemblies().Select(GetPluginsFrom)
@@ -23,8 +24,6 @@ namespace Shos.PluginSample
             var dllPath = GetNewDllPath();
             if (dllPath is null)
                 return new (object instance, string name, MethodInfo runMethod)[0];
-
-            const string codeFileName = "temorary.cs";
 
             using var stream = File.Create(dllPath.Value.dllPath);
             return CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
