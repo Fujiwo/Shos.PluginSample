@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text;
 
 namespace Shos.PluginSample
 {
@@ -15,6 +17,7 @@ namespace Shos.PluginSample
             => GetPluginAssemblies().Select(GetPluginsFrom)
                                     .SelectMany(plugins => plugins);
 
+        /// <exception cref="Exception"/>
         public static IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins(string code, CSharpParseOptions options, MetadataReference[] references)
         {
             var dllPath = GetNewDllPath();
@@ -28,9 +31,19 @@ namespace Shos.PluginSample
         }
 
         static IEnumerable<Assembly> GetPluginAssemblies()
-            => Directory.GetFiles(GetPluginFolderName())
-                        .Select(Assembly.LoadFrom);
+        {
+            List<Assembly> assemblies = new();
+            var files                 = Directory.GetFiles(GetPluginFolderName());
+            foreach (var file in files) {
+                try {
+                    assemblies.Add(Assembly.LoadFrom(file));
+                } catch (Exception ex) {
+                }
+            }
+            return assemblies;
+        }
 
+        /// <exception cref="Exception"/>
         static IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins(string code, string dllPath, string codeFileName, CSharpParseOptions options, MetadataReference[] references, FileStream stream)
         {
             var syntaxTree = CSharpSyntaxTree.ParseText(code, options, codeFileName);
@@ -43,18 +56,21 @@ namespace Shos.PluginSample
                 var assembly = AssemblyLoadContext.Default.LoadFromStream(stream);
                 return GetPluginsFrom(assembly);
             } else {
-                foreach (var diagnostic in emitResult.Diagnostics) {
-                    var pos = diagnostic.Location.GetLineSpan();
-                    var location =
-                        "(" + pos.Path + "@Line" + (pos.StartLinePosition.Line + 1) +
-                        ":" +
-                        (pos.StartLinePosition.Character + 1) + ")";
-                    Debug.WriteLine(
-                        $"[{diagnostic.Severity}, {location}]{diagnostic.Id}, {diagnostic.GetMessage()}"
-                    );
-                }
-                return new (object instance, string name, MethodInfo runMethod)[0];
+                throw new Exception(CreateErrorMessage(emitResult));
             }
+        }
+
+        static string CreateErrorMessage(EmitResult emitResult)
+        {
+            StringBuilder stringBuilder = new();
+
+            emitResult.Diagnostics.ForEach(diagnostic => {
+                var pos = diagnostic.Location.GetLineSpan();
+                var location = "(" + pos.Path + "@Line" + (pos.StartLinePosition.Line + 1) + ":" + (pos.StartLinePosition.Character + 1) + ")";
+                stringBuilder.AppendLine($"[{diagnostic.Severity}, {location}]{diagnostic.Id}, {diagnostic.GetMessage()}");
+            });
+
+            return stringBuilder.ToString();
         }
 
         static IEnumerable<(object instance, string name, MethodInfo runMethod)> GetPluginsFrom(Assembly assembly)

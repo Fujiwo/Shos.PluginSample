@@ -38,7 +38,13 @@ namespace Shos.PluginSample
         }
 
         void addButton_Click(object sender, EventArgs e)
-            => CreatePlugins().ForEach(plugin => AddToMenu(toolsMenuItem, plugin.instance, plugin.runMethod, plugin.name));
+        {
+            try {
+                CreatePlugins().ForEach(plugin => AddToMenu(toolsMenuItem, plugin.instance, plugin.runMethod, plugin.name));
+            } catch (Exception ex) {
+                messageTextBox.Text = ex.Message;
+            }
+        }
 
         //void removeButton_Click(object sender, EventArgs e)
         //    => CreatePlugins().ForEach(plugin => RemoveFromMenu(toolsMenuItem, plugin.name));
@@ -71,9 +77,11 @@ namespace Shos.PluginSample
         //    return true;
         //}
 
+        /// <exception cref="Exception"/>
         IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins()
             => CreatePlugins(codeTextBox.Text);
 
+        /// <exception cref="Exception"/>
         IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins(string code)
         {
             var options               = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);

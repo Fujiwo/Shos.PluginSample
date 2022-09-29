@@ -31,8 +31,8 @@
             this.toolsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.codeTextBox = new System.Windows.Forms.TextBox();
-            //this.removeButton = new System.Windows.Forms.Button();
             this.addButton = new System.Windows.Forms.Button();
+            this.messageTextBox = new System.Windows.Forms.TextBox();
             this.mainMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -69,10 +69,10 @@
             // 
             // splitContainer.Panel2
             // 
-            //this.splitContainer.Panel2.Controls.Add(this.removeButton);
+            this.splitContainer.Panel2.Controls.Add(this.messageTextBox);
             this.splitContainer.Panel2.Controls.Add(this.addButton);
             this.splitContainer.Size = new System.Drawing.Size(2186, 968);
-            this.splitContainer.SplitterDistance = 1880;
+            this.splitContainer.SplitterDistance = 1589;
             this.splitContainer.TabIndex = 1;
             // 
             // codeTextBox
@@ -81,28 +81,31 @@
             this.codeTextBox.Location = new System.Drawing.Point(0, 0);
             this.codeTextBox.Multiline = true;
             this.codeTextBox.Name = "codeTextBox";
-            this.codeTextBox.Size = new System.Drawing.Size(1880, 968);
+            this.codeTextBox.Size = new System.Drawing.Size(1589, 968);
             this.codeTextBox.TabIndex = 0;
-            //// 
-            //// removeButton
-            //// 
-            //this.removeButton.Location = new System.Drawing.Point(38, 122);
-            //this.removeButton.Name = "removeButton";
-            //this.removeButton.Size = new System.Drawing.Size(252, 69);
-            //this.removeButton.TabIndex = 0;
-            //this.removeButton.Text = "Remove";
-            //this.removeButton.UseVisualStyleBackColor = true;
-            //this.removeButton.Click += new System.EventHandler(this.removeButton_Click);
             // 
             // addButton
             // 
-            this.addButton.Location = new System.Drawing.Point(38, 31);
+            this.addButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.addButton.Location = new System.Drawing.Point(3, 3);
             this.addButton.Name = "addButton";
-            this.addButton.Size = new System.Drawing.Size(252, 69);
+            this.addButton.Size = new System.Drawing.Size(590, 69);
             this.addButton.TabIndex = 0;
             this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
+            // 
+            // messageTextBox
+            // 
+            this.messageTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.messageTextBox.Location = new System.Drawing.Point(2, 78);
+            this.messageTextBox.Multiline = true;
+            this.messageTextBox.Name = "messageTextBox";
+            this.messageTextBox.Size = new System.Drawing.Size(588, 890);
+            this.messageTextBox.TabIndex = 1;
             // 
             // MainForm
             // 
@@ -119,6 +122,7 @@
             this.splitContainer.Panel1.ResumeLayout(false);
             this.splitContainer.Panel1.PerformLayout();
             this.splitContainer.Panel2.ResumeLayout(false);
+            this.splitContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
             this.splitContainer.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -134,5 +138,6 @@
         private TextBox codeTextBox;
         //private Button removeButton;
         private Button addButton;
+        private TextBox messageTextBox;
     }
 }
