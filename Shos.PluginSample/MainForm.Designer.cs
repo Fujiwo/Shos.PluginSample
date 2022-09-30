@@ -28,11 +28,13 @@
         private void InitializeComponent()
         {
             this.mainMenu = new System.Windows.Forms.MenuStrip();
+            this.pluginsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeAllPluginsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.codeTextBox = new System.Windows.Forms.TextBox();
-            this.addButton = new System.Windows.Forms.Button();
             this.messageTextBox = new System.Windows.Forms.TextBox();
+            this.addButton = new System.Windows.Forms.Button();
             this.mainMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -44,23 +46,39 @@
             // 
             this.mainMenu.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.mainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.pluginsMenuItem,
             this.toolsMenuItem});
             this.mainMenu.Location = new System.Drawing.Point(0, 0);
             this.mainMenu.Name = "mainMenu";
-            this.mainMenu.Size = new System.Drawing.Size(2186, 56);
+            this.mainMenu.Size = new System.Drawing.Size(2186, 61);
             this.mainMenu.TabIndex = 0;
             this.mainMenu.Text = "mainMenu";
             // 
+            // pluginsMenuItem
+            // 
+            this.pluginsMenuItem.Name = "pluginsMenuItem";
+            this.pluginsMenuItem.Size = new System.Drawing.Size(162, 57);
+            this.pluginsMenuItem.Text = "&Plugins";
+            // 
             // toolsMenuItem
             // 
+            this.toolsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.removeAllPluginsMenuItem});
             this.toolsMenuItem.Name = "toolsMenuItem";
-            this.toolsMenuItem.Size = new System.Drawing.Size(129, 52);
+            this.toolsMenuItem.Size = new System.Drawing.Size(129, 57);
             this.toolsMenuItem.Text = "&Tools";
+            // 
+            // removeAllPluginsMenuItem
+            // 
+            this.removeAllPluginsMenuItem.Name = "removeAllPluginsMenuItem";
+            this.removeAllPluginsMenuItem.Size = new System.Drawing.Size(538, 66);
+            this.removeAllPluginsMenuItem.Text = "Remove &All Plugins";
+            this.removeAllPluginsMenuItem.Click += new System.EventHandler(this.removeAllPluginsMenuItem_Click);
             // 
             // splitContainer
             // 
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer.Location = new System.Drawing.Point(0, 56);
+            this.splitContainer.Location = new System.Drawing.Point(0, 61);
             this.splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
@@ -71,7 +89,7 @@
             // 
             this.splitContainer.Panel2.Controls.Add(this.messageTextBox);
             this.splitContainer.Panel2.Controls.Add(this.addButton);
-            this.splitContainer.Size = new System.Drawing.Size(2186, 968);
+            this.splitContainer.Size = new System.Drawing.Size(2186, 963);
             this.splitContainer.SplitterDistance = 1589;
             this.splitContainer.TabIndex = 1;
             // 
@@ -81,8 +99,19 @@
             this.codeTextBox.Location = new System.Drawing.Point(0, 0);
             this.codeTextBox.Multiline = true;
             this.codeTextBox.Name = "codeTextBox";
-            this.codeTextBox.Size = new System.Drawing.Size(1589, 968);
+            this.codeTextBox.Size = new System.Drawing.Size(1589, 963);
             this.codeTextBox.TabIndex = 0;
+            // 
+            // messageTextBox
+            // 
+            this.messageTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.messageTextBox.Location = new System.Drawing.Point(2, 78);
+            this.messageTextBox.Multiline = true;
+            this.messageTextBox.Name = "messageTextBox";
+            this.messageTextBox.Size = new System.Drawing.Size(588, 885);
+            this.messageTextBox.TabIndex = 1;
             // 
             // addButton
             // 
@@ -95,17 +124,6 @@
             this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
-            // 
-            // messageTextBox
-            // 
-            this.messageTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.messageTextBox.Location = new System.Drawing.Point(2, 78);
-            this.messageTextBox.Multiline = true;
-            this.messageTextBox.Name = "messageTextBox";
-            this.messageTextBox.Size = new System.Drawing.Size(588, 890);
-            this.messageTextBox.TabIndex = 1;
             // 
             // MainForm
             // 
@@ -134,6 +152,8 @@
 
         private MenuStrip mainMenu;
         private ToolStripMenuItem toolsMenuItem;
+        private ToolStripMenuItem pluginsMenuItem;
+        private ToolStripMenuItem removeAllPluginsMenuItem;
         private SplitContainer splitContainer;
         private TextBox codeTextBox;
         //private Button removeButton;

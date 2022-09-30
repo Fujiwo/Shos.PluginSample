@@ -24,10 +24,15 @@ namespace Shos.PluginSample
         const string shortcutPropertyName = "Shortcut";
         const string runMethodName        = "Run";
         const string codeFileName         = "Plugin.cs";
+        const string dllFolder            = "Plugins";
 
         public static IEnumerable<Plugin> GetPlugins()
             => GetPluginAssemblies().Select(GetPluginsFrom)
                                     .SelectMany(plugins => plugins);
+
+        /// <exception cref="Exception"/>
+        public static IEnumerable<Plugin> CreatePlugins(string code, MetadataReference[] references)
+            => CreatePlugins(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Default), references);
 
         /// <exception cref="Exception"/>
         public static IEnumerable<Plugin> CreatePlugins(string code, CSharpParseOptions options, MetadataReference[] references)
@@ -39,6 +44,9 @@ namespace Shos.PluginSample
             using var stream = File.Create(dllPath.Value.dllPath);
             return CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
         }
+
+        //public static void RemoveAll()
+        //    => DirectoryHelper.Delete(dllFolder);
 
         static IEnumerable<Assembly> GetPluginAssemblies()
         {
@@ -121,7 +129,6 @@ namespace Shos.PluginSample
 
         static string GetPluginFolderName()
         {
-            const string dllFolder = "Plugins";
             if (!Directory.Exists(dllFolder))
                 Directory.CreateDirectory(dllFolder);
             return dllFolder;

@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
 
 namespace Shos.PluginSample
 {
@@ -11,7 +10,7 @@ namespace Shos.PluginSample
             InitializeComponent();
 
             PluginHelper.GetPlugins()
-                        .ForEach(plugin => AddToMenu(toolsMenuItem, plugin));
+                        .ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
 
             codeTextBox.Text = @"
     public abstract class TestClass0
@@ -39,24 +38,25 @@ namespace Shos.PluginSample
         {
             messageTextBox.Text = "";
             try {
-                CreatePlugins().ForEach(plugin => AddToMenu(toolsMenuItem, plugin));
+                CreatePlugins().ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
             } catch (Exception ex) {
                 messageTextBox.Text = ex.Message;
             }
         }
 
-        //void removeButton_Click(object sender, EventArgs e)
-        //    => CreatePlugins().ForEach(plugin => RemoveFromMenu(toolsMenuItem, plugin.name));
-
-        static bool AddToMenu(ToolStripMenuItem menuItem, Plugin plugin)
+        void removeAllPluginsMenuItem_Click(object sender, EventArgs e)
         {
-            var (exists, _) = Exists(menuItem, plugin.Name ?? "");
-            if (exists)
-                return false;
+            RemoveAllFromMenuItem(pluginsMenuItem);
+            //PluginHelper.RemoveAll();
+        }
 
-            ToolStripMenuItem newMenuItem = ToMenuItem(plugin);
-            menuItem.DropDownItems.Add(newMenuItem);
-            return true;
+        //void removeButton_Click(object sender, EventArgs e)
+        //    => CreatePlugins().ForEach(plugin => RemoveFromMenu(pluginsMenuItem, plugin.name));
+
+        static void AddToMenu(ToolStripMenuItem menuItem, Plugin plugin)
+        {
+            RemoveFromMenu(menuItem, plugin);
+            menuItem.DropDownItems.Add(ToMenuItem(plugin));
         }
 
         static ToolStripMenuItem ToMenuItem(Plugin plugin)
@@ -72,15 +72,19 @@ namespace Shos.PluginSample
             return foundMenuItems is null || foundMenuItems.Length == 0 ? (false, new ToolStripItem[0]) : (true, foundMenuItems);
         }
 
-        //static bool RemoveFromMenu(ToolStripMenuItem menuItem, Plugin plugin)
-        //{
-        //    var (exists, foundMenuItems) = Exists(menuItem, plugin.Name ?? "");
-        //    if (!exists)
-        //        return false;
+        static bool RemoveFromMenu(ToolStripMenuItem menuItem, Plugin plugin)
+        {
+            var (exists, foundMenuItems) = Exists(menuItem, plugin.Name ?? "");
+            if (!exists)
+                return false;
 
-        //    foundMenuItems.ForEach(foundMenuItem => menuItem.DropDownItems.Remove(foundMenuItem));
-        //    return true;
-        //}
+            foundMenuItems.ForEach(foundMenuItem => menuItem.DropDownItems.Remove(foundMenuItem));
+            return true;
+        }
+
+
+        static void RemoveAllFromMenuItem(ToolStripMenuItem pluginsMenuItem)
+            => pluginsMenuItem.DropDownItems.Clear();
 
         /// <exception cref="Exception"/>
         IEnumerable<Plugin> CreatePlugins()
@@ -89,7 +93,6 @@ namespace Shos.PluginSample
         /// <exception cref="Exception"/>
         IEnumerable<Plugin> CreatePlugins(string code)
         {
-            var options               = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);
             var assemblyDirectoryPath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "";
             var references            = new MetadataReference[] {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
@@ -97,7 +100,7 @@ namespace Shos.PluginSample
                 MetadataReference.CreateFromFile($"{assemblyDirectoryPath}/System.Runtime.dll"),
                 MetadataReference.CreateFromFile($"{assemblyDirectoryPath.Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App")}/System.Windows.Forms.dll")
             };
-            return PluginHelper.CreatePlugins(code, options, references);
+            return PluginHelper.CreatePlugins(code, references);
         }
     }
 }
