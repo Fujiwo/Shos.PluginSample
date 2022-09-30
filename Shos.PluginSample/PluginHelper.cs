@@ -8,22 +8,33 @@ using System.Text;
 
 namespace Shos.PluginSample
 {
+    public class Plugin
+    {
+        public string?     Name      { get; set; } = "";
+        public char        Shortcut  { get; set; } = '\0';
+        public object?     Instance  { get; set; }
+        public MethodInfo? RunMethod { get; set; }
+
+        public bool IsValid => Name is not null && Instance is not null && RunMethod is not null;
+    }
+
     public static class PluginHelper
     {
-        const string namePropertyName = "Name";
-        const string runMethodName    = "Run";
-        const string codeFileName     = "Plugin.cs";
+        const string namePropertyName     = "Name";
+        const string shortcutPropertyName = "Shortcut";
+        const string runMethodName        = "Run";
+        const string codeFileName         = "Plugin.cs";
 
-        public static IEnumerable<(object instance, string name, MethodInfo runMethod)> GetPlugins()
+        public static IEnumerable<Plugin> GetPlugins()
             => GetPluginAssemblies().Select(GetPluginsFrom)
                                     .SelectMany(plugins => plugins);
 
         /// <exception cref="Exception"/>
-        public static IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins(string code, CSharpParseOptions options, MetadataReference[] references)
+        public static IEnumerable<Plugin> CreatePlugins(string code, CSharpParseOptions options, MetadataReference[] references)
         {
             var dllPath = GetNewDllPath();
             if (dllPath is null)
-                return new (object instance, string name, MethodInfo runMethod)[0];
+                return new Plugin[0];
 
             using var stream = File.Create(dllPath.Value.dllPath);
             return CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
@@ -36,20 +47,20 @@ namespace Shos.PluginSample
             foreach (var file in files) {
                 try {
                     assemblies.Add(Assembly.LoadFrom(file));
-                } catch (Exception ex) {
+                } catch (Exception) {
                 }
             }
             return assemblies;
         }
 
         /// <exception cref="Exception"/>
-        static IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins(string code, string dllPath, string codeFileName, CSharpParseOptions options, MetadataReference[] references, FileStream stream)
+        static IEnumerable<Plugin> CreatePlugins(string code, string dllPath, string codeFileName, CSharpParseOptions options, MetadataReference[] references, FileStream stream)
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(code, options, codeFileName);
+            var syntaxTree         = CSharpSyntaxTree.ParseText(code, options, codeFileName);
             var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            var compilation = CSharpCompilation.Create(dllPath, new[] { syntaxTree }, references, compilationOptions);
-
-            var emitResult = compilation.Emit(stream);
+            var compilation        = CSharpCompilation.Create(dllPath, new[] { syntaxTree }, references, compilationOptions);
+            
+            var emitResult        = compilation.Emit(stream);
             if (emitResult.Success) {
                 stream.Seek(0, SeekOrigin.Begin);
                 var assembly = AssemblyLoadContext.Default.LoadFromStream(stream);
@@ -72,16 +83,25 @@ namespace Shos.PluginSample
             return stringBuilder.ToString();
         }
 
-        static IEnumerable<(object instance, string name, MethodInfo runMethod)> GetPluginsFrom(Assembly assembly)
+        static IEnumerable<Plugin> GetPluginsFrom(Assembly assembly)
             => assembly.GetTypes()
-                       .Where(type => type.IsPublic && !type.IsNestedPublic)
+                       .Where(type => type.IsPublic && !type.IsNestedPublic && !type.IsAbstract)
                        .Select(CreatePlugIn)
-                       .Where(plugin => plugin.instance is not null && plugin.name is not null && plugin.runMethod is not null);
+                       .Where(plugin => plugin is not null && plugin.IsValid);
 
-        static (object? instance, string? name, MethodInfo? runMethod) CreatePlugIn(Type type)
+        static Plugin? CreatePlugIn(Type type)
         {
-            var instance = Activator.CreateInstance(type);
-            return (instance, type.GetProperty(namePropertyName, typeof(string))?.GetValue(instance) as string, type.GetMethod(runMethodName, BindingFlags.Public | BindingFlags.Instance, new Type[] { }));
+            try {
+                var instance = Activator.CreateInstance(type);
+                return new Plugin {
+                    Name      = type.GetProperty(namePropertyName    , typeof(string))?.GetValue(instance) as string      ,
+                    Shortcut  = (char)(type.GetProperty(shortcutPropertyName, typeof(char  ))?.GetValue(instance) ?? '\0'),
+                    Instance  = instance                                                                                  ,
+                    RunMethod = type.GetMethod(runMethodName, BindingFlags.Public | BindingFlags.Instance, new Type[] {})
+                };
+            } catch (Exception) {
+                return null;
+            }
         }
 
         static (string dllName, string dllPath)? GetNewDllPath()

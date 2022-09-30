@@ -11,36 +11,35 @@ namespace Shos.PluginSample
             InitializeComponent();
 
             PluginHelper.GetPlugins()
-                        .ForEach(plugin => AddToMenu(toolsMenuItem, plugin.instance, plugin.runMethod, plugin.name));
+                        .ForEach(plugin => AddToMenu(toolsMenuItem, plugin));
 
             codeTextBox.Text = @"
-
-    public class TestClass1
+    public abstract class TestClass0
     {
-        public string Name => ""Tool1"";
-
-        public void Run()
-        {
-            System.Windows.Forms.MessageBox.Show($""{Name} is running."", ""Name"");
-        }
+        public abstract string Name     { get; }
+        public abstract char Shortcut { get; }
+        public virtual void Run() => System.Windows.Forms.MessageBox.Show($""{Name} is running."", ""Name"");
     }
 
-    public class TestClass2
+    public class TestClass1 : TestClass0
     {
-        public string Name => ""Tool2"";
+        public override string Name => ""Tool1"";
+        public override char Shortcut => '1';
+    }
 
-        public void Run()
-        {
-            System.Windows.Forms.MessageBox.Show($""{Name} is running."", ""Name"");
-        }
+    public class TestClass2 : TestClass0
+    {
+        public override string Name => ""Tool2"";
+        public override char Shortcut => '2';
     }
 ";
         }
 
         void addButton_Click(object sender, EventArgs e)
         {
+            messageTextBox.Text = "";
             try {
-                CreatePlugins().ForEach(plugin => AddToMenu(toolsMenuItem, plugin.instance, plugin.runMethod, plugin.name));
+                CreatePlugins().ForEach(plugin => AddToMenu(toolsMenuItem, plugin));
             } catch (Exception ex) {
                 messageTextBox.Text = ex.Message;
             }
@@ -49,16 +48,22 @@ namespace Shos.PluginSample
         //void removeButton_Click(object sender, EventArgs e)
         //    => CreatePlugins().ForEach(plugin => RemoveFromMenu(toolsMenuItem, plugin.name));
 
-        static bool AddToMenu(ToolStripMenuItem menuItem, object instance, MethodInfo runMethod, string name)
+        static bool AddToMenu(ToolStripMenuItem menuItem, Plugin plugin)
         {
-            var (exists, _) = Exists(menuItem, name);
+            var (exists, _) = Exists(menuItem, plugin.Name ?? "");
             if (exists)
                 return false;
 
-            var newMenuItem = new ToolStripMenuItem { Text = name, Name = name };
-            newMenuItem.Click += (_, __) => runMethod.Invoke(instance, new object[] {});
+            ToolStripMenuItem newMenuItem = ToMenuItem(plugin);
             menuItem.DropDownItems.Add(newMenuItem);
             return true;
+        }
+
+        static ToolStripMenuItem ToMenuItem(Plugin plugin)
+        {
+            var newMenuItem = new ToolStripMenuItem { Text = $"{plugin.Name ?? ""}(&{plugin.Shortcut})", Name = plugin.Name ?? ""};
+            newMenuItem.Click += (_, __) => plugin.RunMethod?.Invoke(plugin.Instance, new object[] {});
+            return newMenuItem;
         }
 
         static (bool exists, ToolStripItem[] foundMenuItems) Exists(ToolStripMenuItem menuItem, string name)
@@ -67,9 +72,9 @@ namespace Shos.PluginSample
             return foundMenuItems is null || foundMenuItems.Length == 0 ? (false, new ToolStripItem[0]) : (true, foundMenuItems);
         }
 
-        //static bool RemoveFromMenu(ToolStripMenuItem menuItem, string name)
+        //static bool RemoveFromMenu(ToolStripMenuItem menuItem, Plugin plugin)
         //{
-        //    var (exists, foundMenuItems) = Exists(menuItem, name);
+        //    var (exists, foundMenuItems) = Exists(menuItem, plugin.Name ?? "");
         //    if (!exists)
         //        return false;
 
@@ -78,11 +83,11 @@ namespace Shos.PluginSample
         //}
 
         /// <exception cref="Exception"/>
-        IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins()
+        IEnumerable<Plugin> CreatePlugins()
             => CreatePlugins(codeTextBox.Text);
 
         /// <exception cref="Exception"/>
-        IEnumerable<(object instance, string name, MethodInfo runMethod)> CreatePlugins(string code)
+        IEnumerable<Plugin> CreatePlugins(string code)
         {
             var options               = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);
             var assemblyDirectoryPath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "";
