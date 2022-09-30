@@ -9,9 +9,9 @@
 
 //            Directory.GetFiles(directoryPath)
 //                     .ForEach(filePath => {
-//                          File.SetAttributes(filePath, FileAttributes.Normal);
-//                          File.Delete(filePath);
-//                      });
+//                         File.SetAttributes(filePath, FileAttributes.Normal);
+//                         File.Delete(filePath);
+//                     });
 
 //            Directory.GetDirectories(directoryPath)
 //                     .ForEach(subDirectoryPath => Delete(subDirectoryPath));

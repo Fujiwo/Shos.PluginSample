@@ -17,7 +17,7 @@ namespace Shos.PluginSample
     {
         public abstract string Name     { get; }
         public abstract char Shortcut { get; }
-        public virtual void Run() => System.Windows.Forms.MessageBox.Show($""{Name} is running."", ""Name"");
+        public virtual void Run() => System.Windows.Forms.MessageBox.Show($""{Name} is running."", Name);
     }
 
     public class TestClass1 : TestClass0
@@ -47,7 +47,7 @@ namespace Shos.PluginSample
         void removeAllPluginsMenuItem_Click(object sender, EventArgs e)
         {
             RemoveAllFromMenuItem(pluginsMenuItem);
-            //PluginHelper.RemoveAll();
+            PluginHelper.RemoveAll();
         }
 
         //void removeButton_Click(object sender, EventArgs e)

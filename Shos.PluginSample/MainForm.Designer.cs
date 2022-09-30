@@ -34,7 +34,7 @@
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.codeTextBox = new System.Windows.Forms.TextBox();
             this.messageTextBox = new System.Windows.Forms.TextBox();
-            this.addButton = new System.Windows.Forms.Button();
+            this.addPluginsButton = new System.Windows.Forms.Button();
             this.mainMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -88,7 +88,7 @@
             // splitContainer.Panel2
             // 
             this.splitContainer.Panel2.Controls.Add(this.messageTextBox);
-            this.splitContainer.Panel2.Controls.Add(this.addButton);
+            this.splitContainer.Panel2.Controls.Add(this.addPluginsButton);
             this.splitContainer.Size = new System.Drawing.Size(3119, 1539);
             this.splitContainer.SplitterDistance = 1582;
             this.splitContainer.TabIndex = 1;
@@ -113,17 +113,17 @@
             this.messageTextBox.Size = new System.Drawing.Size(1528, 1461);
             this.messageTextBox.TabIndex = 1;
             // 
-            // addButton
+            // addPluginsButton
             // 
-            this.addButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.addPluginsButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.addButton.Location = new System.Drawing.Point(3, 3);
-            this.addButton.Name = "addButton";
-            this.addButton.Size = new System.Drawing.Size(1530, 69);
-            this.addButton.TabIndex = 0;
-            this.addButton.Text = "Add";
-            this.addButton.UseVisualStyleBackColor = true;
-            this.addButton.Click += new System.EventHandler(this.addButton_Click);
+            this.addPluginsButton.Location = new System.Drawing.Point(3, 3);
+            this.addPluginsButton.Name = "addPluginsButton";
+            this.addPluginsButton.Size = new System.Drawing.Size(1530, 69);
+            this.addPluginsButton.TabIndex = 0;
+            this.addPluginsButton.Text = "Add Plugins";
+            this.addPluginsButton.UseVisualStyleBackColor = true;
+            this.addPluginsButton.Click += new System.EventHandler(this.addButton_Click);
             // 
             // MainForm
             // 
@@ -157,7 +157,7 @@
         private SplitContainer splitContainer;
         private TextBox codeTextBox;
         //private Button removeButton;
-        private Button addButton;
+        private Button addPluginsButton;
         private TextBox messageTextBox;
     }
 }

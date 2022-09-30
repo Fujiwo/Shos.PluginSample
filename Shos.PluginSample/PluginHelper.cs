@@ -1,7 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
@@ -20,11 +22,49 @@ namespace Shos.PluginSample
 
     public static class PluginHelper
     {
-        const string namePropertyName     = "Name";
-        const string shortcutPropertyName = "Shortcut";
-        const string runMethodName        = "Run";
-        const string codeFileName         = "Plugin.cs";
-        const string dllFolder            = "Plugins";
+        const string namePropertyName         = "Name";
+        const string shortcutPropertyName     = "Shortcut";
+        const string runMethodName            = "Run";
+        const string codeFileName             = "Plugin.cs";
+        const string applicationName          = nameof(Shos.PluginSample);
+        const string dllFolder                = "Plugins";
+        const string removeAllPluginsFileName = "RemoveAllPlugins";
+
+        static string DllFolderPath {
+            get {
+                var dllFolerPath = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), applicationName), dllFolder);
+
+                if (!Directory.Exists(dllFolerPath))
+                    Directory.CreateDirectory(dllFolerPath);
+                return dllFolerPath;
+            }
+        }
+
+        //static string RemoveAllFilePath => Path.Combine(DllFolderPath, removeAllPluginsFileName);
+
+        static PluginHelper()
+        {
+            var removeAllFilePath = GetLatestRemoveAllFile();
+
+            if (removeAllFilePath is not null) {
+                //DirectoryHelper.Delete(DllFolderPath);
+
+                var filePaths = Directory.GetFiles(DllFolderPath); // ToDo
+
+                Directory.GetFiles(DllFolderPath)
+                         .Where(filePath => {
+                              var fileName = Path.GetFileName(filePath);
+                              return fileName.CompareTo(removeAllFilePath) < 0 || fileName.StartsWith(removeAllPluginsFileName);
+                          })
+                         .ForEach(filePath => File.Delete(filePath));
+            }
+        }
+
+        static string? GetLatestRemoveAllFile()
+            => Directory.GetFiles(DllFolderPath)
+                        .Select(filePath => Path.GetFileName(filePath))
+                        .OrderBy(fileName => fileName)
+                        .LastOrDefault(fileName => fileName.StartsWith(removeAllPluginsFileName));
 
         public static IEnumerable<Plugin> GetPlugins()
             => GetPluginAssemblies().Select(GetPluginsFrom)
@@ -45,13 +85,24 @@ namespace Shos.PluginSample
             return CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
         }
 
-        //public static void RemoveAll()
-        //    => DirectoryHelper.Delete(dllFolder);
+        public static void RemoveAll() => CreateRemoveAllFile();
+
+        static void CreateRemoveAllFile()
+        {
+            var removeAllFilePath = Path.Combine(DllFolderPath, WithCurrentDateTime(removeAllPluginsFileName));
+            if (File.Exists(removeAllFilePath))
+                return;
+
+            using (var fileStream = File.Create(removeAllFilePath)) {
+                var content = new UTF8Encoding(true).GetBytes("This is a file to remove all plugins.");
+                fileStream.Write(content, 0, content.Length);
+            }
+        }
 
         static IEnumerable<Assembly> GetPluginAssemblies()
         {
             List<Assembly> assemblies = new();
-            var files                 = Directory.GetFiles(GetPluginFolderName());
+            var files = Directory.GetFiles(DllFolderPath);
             foreach (var file in files) {
                 try {
                     assemblies.Add(Assembly.LoadFrom(file));
@@ -67,8 +118,8 @@ namespace Shos.PluginSample
             var syntaxTree         = CSharpSyntaxTree.ParseText(code, options, codeFileName);
             var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             var compilation        = CSharpCompilation.Create(dllPath, new[] { syntaxTree }, references, compilationOptions);
-            
-            var emitResult        = compilation.Emit(stream);
+
+            var emitResult = compilation.Emit(stream);
             if (emitResult.Success) {
                 stream.Seek(0, SeekOrigin.Begin);
                 var assembly = AssemblyLoadContext.Default.LoadFromStream(stream);
@@ -95,17 +146,17 @@ namespace Shos.PluginSample
             => assembly.GetTypes()
                        .Where(type => type.IsPublic && !type.IsNestedPublic && !type.IsAbstract)
                        .Select(CreatePlugIn)
-                       .Where(plugin => plugin is not null && plugin.IsValid);
+                       .Where(plugin => plugin is not null && plugin.IsValid)!;
 
         static Plugin? CreatePlugIn(Type type)
         {
             try {
                 var instance = Activator.CreateInstance(type);
                 return new Plugin {
-                    Name      = type.GetProperty(namePropertyName    , typeof(string))?.GetValue(instance) as string      ,
-                    Shortcut  = (char)(type.GetProperty(shortcutPropertyName, typeof(char  ))?.GetValue(instance) ?? '\0'),
-                    Instance  = instance                                                                                  ,
-                    RunMethod = type.GetMethod(runMethodName, BindingFlags.Public | BindingFlags.Instance, new Type[] {})
+                    Name = type.GetProperty(namePropertyName, typeof(string))?.GetValue(instance) as string,
+                    Shortcut = (char)(type.GetProperty(shortcutPropertyName, typeof(char))?.GetValue(instance) ?? '\0'),
+                    Instance = instance,
+                    RunMethod = type.GetMethod(runMethodName, BindingFlags.Public | BindingFlags.Instance, new Type[] { })
                 };
             } catch (Exception) {
                 return null;
@@ -114,24 +165,28 @@ namespace Shos.PluginSample
 
         static (string dllName, string dllPath)? GetNewDllPath()
         {
-            const int maximumDllFileNumber = 1000;
-
-            string dllFolderName = GetPluginFolderName();
-
+            const int maximumDllFileNumber = 99;
+            string dllFolderName           = DllFolderPath;
+            
             for (var number = 1; number <= maximumDllFileNumber; number++) {
-                var dllName = $"plugin{number:D8}.dll";
-                var dllPath = $@"{dllFolderName}\{dllName}";
-                if (!File.Exists(dllPath))
-                    return (dllName, dllPath);
+                var dllFileName = $"{WithCurrentDateTime("Plugin")}.{number:D2}.dll";
+                var dllFilePath = Path.Combine(dllFolderName, dllFileName);
+                if (!File.Exists(dllFilePath))
+                    return (dllFileName, dllFilePath);
             }
             return null;
         }
 
-        static string GetPluginFolderName()
+        static string WithCurrentDateTime(string text)
+            => $"{text}.{GetStringFromCurrentDateTime()}";
+
+        static string GetCurrentDateTimeText(string text, string baseText)
+            => text.Replace($"{baseText}.", "");
+
+        static string GetStringFromCurrentDateTime()
         {
-            if (!Directory.Exists(dllFolder))
-                Directory.CreateDirectory(dllFolder);
-            return dllFolder;
+            var dateTime = DateTime.Now.ToUniversalTime();
+            return $"{dateTime.Year:D4}.{dateTime.Month:D2}.{dateTime.Minute:D2}.{dateTime.Second:D2}.{dateTime.Millisecond:D3}";
         }
     }
 }
