@@ -40,23 +40,26 @@ namespace Shos.PluginSample
 
         static PluginHelper()
         {
-            var removeAllFilePath = GetLatestRemoveAllFile();
-
-            if (removeAllFilePath is not null) {
-                var removeAllFileName             = Path.GetFileName(removeAllFilePath);
-                var removeAllFileNameDateTimeText = GetCurrentDateTimeText(removeAllFileName, removeAllPluginsFileName);
-
-                Directory.GetFiles(DllFolderPath)
-                         .Where(filePath => {
-                              var fileName = Path.GetFileName(filePath);
-                              return GetCurrentDateTimeText(fileName, pluginFileNameWithoutExtension).CompareTo(removeAllFileNameDateTimeText) < 0 ||
-                                     fileName.StartsWith(removeAllPluginsFileName);
-                         })
-                         .ForEach(filePath => File.Delete(filePath));
-            }
+            var latestRemoveAllPluginsFilePath = GetLatestRemoveAllPluginsFile();
+            if (latestRemoveAllPluginsFilePath is not null)
+                RemoveAllPluginDlls(latestRemoveAllPluginsFilePath);
         }
 
-        static string? GetLatestRemoveAllFile()
+        static void RemoveAllPluginDlls(string removeAllPluginsFilePath)
+        {
+            var removeAllPluginsFileName             = Path.GetFileName(removeAllPluginsFilePath);
+            var removeAllPluginsFileNameDateTimeText = GetCurrentDateTimeText(removeAllPluginsFileName, PluginHelper.removeAllPluginsFileName);
+
+            Directory.GetFiles(DllFolderPath)
+                     .Where(filePath => {
+                         var fileName = Path.GetFileName(filePath);
+                         return GetCurrentDateTimeText(fileName,
+                                                       pluginFileNameWithoutExtension).CompareTo(removeAllPluginsFileNameDateTimeText) < 0 || fileName.StartsWith(PluginHelper.removeAllPluginsFileName);
+                     })
+                     .ForEach(filePath => File.Delete(filePath));
+        }
+
+        static string? GetLatestRemoveAllPluginsFile()
             => Directory.GetFiles(DllFolderPath)
                         .Select(filePath => Path.GetFileName(filePath))
                         .OrderBy(fileName => fileName)
@@ -81,15 +84,15 @@ namespace Shos.PluginSample
             return await CreatePlugins(code, dllPath.Value.dllFileName, codeFileName, options, references, stream);
         }
 
-        public static void RemoveAll() => CreateRemoveAllFile();
+        public static void RemoveAll() => CreateRemoveAllPluginsFile();
 
-        static void CreateRemoveAllFile()
+        static void CreateRemoveAllPluginsFile()
         {
-            var removeAllFilePath = Path.Combine(DllFolderPath, WithCurrentDateTime(removeAllPluginsFileName));
-            if (File.Exists(removeAllFilePath))
+            var removeAllPluginsFilePath = Path.Combine(DllFolderPath, WithCurrentDateTime(removeAllPluginsFileName));
+            if (File.Exists(removeAllPluginsFilePath))
                 return;
 
-            using (var fileStream = File.Create(removeAllFilePath)) {
+            using (var fileStream = File.Create(removeAllPluginsFilePath)) {
                 var content = new UTF8Encoding(true).GetBytes("This is a file to remove all plugins.");
                 fileStream.Write(content, 0, content.Length);
             }
@@ -160,11 +163,11 @@ namespace Shos.PluginSample
 
         static (string dllFileName, string dllFilePath)? GetNewDllPath()
         {
-            const int maximumDllFileNumber = 99;
+            const int maximumDllFileNumber = 9;
             string dllFolderName           = DllFolderPath;
             
             for (var number = 1; number <= maximumDllFileNumber; number++) {
-                var dllFileName = $"{WithCurrentDateTime(pluginFileNameWithoutExtension)}.{number:D2}.dll";
+                var dllFileName = $"{WithCurrentDateTime(pluginFileNameWithoutExtension)}.{number:D1}.dll";
                 var dllFilePath = Path.Combine(dllFolderName, dllFileName);
                 if (!File.Exists(dllFilePath))
                     return (dllFileName, dllFilePath);
