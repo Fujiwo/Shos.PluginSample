@@ -50,7 +50,7 @@ namespace Shos.PluginSample
             }
 
             addPluginsButton.Enabled = false;
-            messageTextBox.Text = "";
+            messageTextBox.Text      = "";
 
             try {
                 var plugins = await CreatePlugins();

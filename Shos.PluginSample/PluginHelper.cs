@@ -77,8 +77,8 @@ namespace Shos.PluginSample
             if (dllPath is null)
                 return new Plugin[0];
 
-            using var stream = File.Create(dllPath.Value.dllPath);
-            return await CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
+            using var stream = File.Create(dllPath.Value.dllFilePath);
+            return await CreatePlugins(code, dllPath.Value.dllFileName, codeFileName, options, references, stream);
         }
 
         public static void RemoveAll() => CreateRemoveAllFile();
@@ -158,7 +158,7 @@ namespace Shos.PluginSample
             }
         }
 
-        static (string dllName, string dllPath)? GetNewDllPath()
+        static (string dllFileName, string dllFilePath)? GetNewDllPath()
         {
             const int maximumDllFileNumber = 99;
             string dllFolderName           = DllFolderPath;

@@ -72,7 +72,7 @@
             // 
             this.removeAllPluginsMenuItem.Name = "removeAllPluginsMenuItem";
             this.removeAllPluginsMenuItem.Size = new System.Drawing.Size(522, 66);
-            this.removeAllPluginsMenuItem.Text = "Remove &All Plugins";
+            this.removeAllPluginsMenuItem.Text = "&Remove All Plugins";
             this.removeAllPluginsMenuItem.Click += new System.EventHandler(this.removeAllPluginsMenuItem_Click);
             // 
             // splitContainer
@@ -148,18 +148,16 @@
             this.splitContainer.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
 
         private MenuStrip mainMenu;
-        private ToolStripMenuItem toolsMenuItem;
         private ToolStripMenuItem pluginsMenuItem;
+        private ToolStripMenuItem toolsMenuItem;
         private ToolStripMenuItem removeAllPluginsMenuItem;
         private SplitContainer splitContainer;
         private TextBox codeTextBox;
-        //private Button removeButton;
         private Button addPluginsButton;
         private TextBox messageTextBox;
     }
