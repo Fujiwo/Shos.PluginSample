@@ -50,9 +50,6 @@ namespace Shos.PluginSample
             PluginHelper.RemoveAll();
         }
 
-        //void removeButton_Click(object sender, EventArgs e)
-        //    => CreatePlugins().ForEach(plugin => RemoveFromMenu(pluginsMenuItem, plugin.name));
-
         static void AddToMenu(ToolStripMenuItem menuItem, Plugin plugin)
         {
             RemoveFromMenu(menuItem, plugin);

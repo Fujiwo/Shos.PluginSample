@@ -1,9 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using System;
-using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
@@ -40,15 +37,11 @@ namespace Shos.PluginSample
             }
         }
 
-        //static string RemoveAllFilePath => Path.Combine(DllFolderPath, removeAllPluginsFileName);
-
         static PluginHelper()
         {
             var removeAllFilePath = GetLatestRemoveAllFile();
 
             if (removeAllFilePath is not null) {
-                //DirectoryHelper.Delete(DllFolderPath);
-
                 var filePaths = Directory.GetFiles(DllFolderPath); // ToDo
 
                 Directory.GetFiles(DllFolderPath)
