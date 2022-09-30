@@ -1,49 +1,63 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Windows.Forms;
 
 namespace Shos.PluginSample
 {
     internal partial class MainForm : Form
     {
-        public MainForm()
-        {
-            InitializeComponent();
-
-            PluginHelper.GetPlugins()
-                        .ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
-
-            codeTextBox.Text = @"
-    public abstract class TestClass0
+        const string defaultCodeText = @"
+    public abstract class Base
     {
         public abstract string Name     { get; }
         public abstract char Shortcut { get; }
         public virtual void Run() => System.Windows.Forms.MessageBox.Show($""{Name} is running."", Name);
     }
 
-    public class TestClass1 : TestClass0
+    public class Derived1 : Base
     {
         public override string Name => ""Tool1"";
         public override char Shortcut => '1';
     }
 
-    public class TestClass2 : TestClass0
+    public class Derived2 : Base
     {
         public override string Name => ""Tool2"";
         public override char Shortcut => '2';
     }
 ";
+
+        public MainForm()
+        {
+            InitializeComponent();
+            InitializeOthers();
+        }
+
+        void InitializeOthers()
+        {
+            codeTextBox.Text = defaultCodeText;
+
+            PluginHelper.GetPlugins()
+                        .ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
         }
 
         async void addButton_Click(object sender, EventArgs e)
         {
-            addPluginsButton.Enabled = false;
+            void ShowMessage(string message, bool isOK)
+            {
+                messageTextBox.ForeColor = isOK ? Color.DarkGreen : Color.DarkRed;
+                messageTextBox.Text      = message;
+            }
 
+            addPluginsButton.Enabled = false;
             messageTextBox.Text = "";
+
             try {
                 var plugins = await CreatePlugins();
                 plugins.ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
+                ShowMessage(message: "OK.", isOK: true);
             } catch (Exception ex) {
-                messageTextBox.Text = ex.Message;
+                ShowMessage(message: ex.Message, isOK: false);
             } finally {
                 addPluginsButton.Enabled = true;
             }
@@ -83,7 +97,6 @@ namespace Shos.PluginSample
             foundMenuItems.ForEach(foundMenuItem => menuItem.DropDownItems.Remove(foundMenuItem));
             return true;
         }
-
 
         static void RemoveAllFromMenuItem(ToolStripMenuItem pluginsMenuItem)
             => pluginsMenuItem.DropDownItems.Clear();

@@ -95,6 +95,7 @@
             // 
             // codeTextBox
             // 
+            this.codeTextBox.BackColor = System.Drawing.SystemColors.Window;
             this.codeTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.codeTextBox.Location = new System.Drawing.Point(0, 0);
             this.codeTextBox.Multiline = true;
@@ -107,6 +108,8 @@
             this.messageTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.messageTextBox.BackColor = System.Drawing.Color.White;
+            this.messageTextBox.ForeColor = System.Drawing.Color.Black;
             this.messageTextBox.Location = new System.Drawing.Point(2, 78);
             this.messageTextBox.Multiline = true;
             this.messageTextBox.Name = "messageTextBox";
