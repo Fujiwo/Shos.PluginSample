@@ -34,13 +34,18 @@ namespace Shos.PluginSample
 ";
         }
 
-        void addButton_Click(object sender, EventArgs e)
+        async void addButton_Click(object sender, EventArgs e)
         {
+            addPluginsButton.Enabled = false;
+
             messageTextBox.Text = "";
             try {
-                CreatePlugins().ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
+                var plugins = await CreatePlugins();
+                plugins.ForEach(plugin => AddToMenu(pluginsMenuItem, plugin));
             } catch (Exception ex) {
                 messageTextBox.Text = ex.Message;
+            } finally {
+                addPluginsButton.Enabled = true;
             }
         }
 
@@ -84,11 +89,11 @@ namespace Shos.PluginSample
             => pluginsMenuItem.DropDownItems.Clear();
 
         /// <exception cref="Exception"/>
-        IEnumerable<Plugin> CreatePlugins()
-            => CreatePlugins(codeTextBox.Text);
+        async Task<IEnumerable<Plugin>> CreatePlugins()
+            => await CreatePlugins(codeTextBox.Text);
 
         /// <exception cref="Exception"/>
-        IEnumerable<Plugin> CreatePlugins(string code)
+        async Task<IEnumerable<Plugin>> CreatePlugins(string code)
         {
             var assemblyDirectoryPath = Path.GetDirectoryName(typeof(object).Assembly.Location) ?? "";
             var references            = new MetadataReference[] {
@@ -97,7 +102,7 @@ namespace Shos.PluginSample
                 MetadataReference.CreateFromFile($"{assemblyDirectoryPath}/System.Runtime.dll"),
                 MetadataReference.CreateFromFile($"{assemblyDirectoryPath.Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App")}/System.Windows.Forms.dll")
             };
-            return PluginHelper.CreatePlugins(code, references);
+            return await PluginHelper.CreatePlugins(code, references);
         }
     }
 }

@@ -19,13 +19,14 @@ namespace Shos.PluginSample
 
     public static class PluginHelper
     {
-        const string namePropertyName         = "Name";
-        const string shortcutPropertyName     = "Shortcut";
-        const string runMethodName            = "Run";
-        const string codeFileName             = "Plugin.cs";
-        const string applicationName          = nameof(Shos.PluginSample);
-        const string dllFolder                = "Plugins";
-        const string removeAllPluginsFileName = "RemoveAllPlugins";
+        const string namePropertyName               = "Name";
+        const string shortcutPropertyName           = "Shortcut";
+        const string runMethodName                  = "Run";
+        const string pluginFileNameWithoutExtension = "Plugin";
+        static readonly string codeFileName         = $"{pluginFileNameWithoutExtension}.cs";
+        const string applicationName                = nameof(Shos.PluginSample);
+        const string dllFolder                      = "Plugins";
+        const string removeAllPluginsFileName       = "RemoveAllPlugins";
 
         static string DllFolderPath {
             get {
@@ -42,13 +43,15 @@ namespace Shos.PluginSample
             var removeAllFilePath = GetLatestRemoveAllFile();
 
             if (removeAllFilePath is not null) {
-                var filePaths = Directory.GetFiles(DllFolderPath); // ToDo
+                var removeAllFileName             = Path.GetFileName(removeAllFilePath);
+                var removeAllFileNameDateTimeText = GetCurrentDateTimeText(removeAllFileName, removeAllPluginsFileName);
 
                 Directory.GetFiles(DllFolderPath)
                          .Where(filePath => {
                               var fileName = Path.GetFileName(filePath);
-                              return fileName.CompareTo(removeAllFilePath) < 0 || fileName.StartsWith(removeAllPluginsFileName);
-                          })
+                              return GetCurrentDateTimeText(fileName, pluginFileNameWithoutExtension).CompareTo(removeAllFileNameDateTimeText) < 0 ||
+                                     fileName.StartsWith(removeAllPluginsFileName);
+                         })
                          .ForEach(filePath => File.Delete(filePath));
             }
         }
@@ -64,18 +67,18 @@ namespace Shos.PluginSample
                                     .SelectMany(plugins => plugins);
 
         /// <exception cref="Exception"/>
-        public static IEnumerable<Plugin> CreatePlugins(string code, MetadataReference[] references)
-            => CreatePlugins(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Default), references);
-
+        public static async Task<IEnumerable<Plugin>> CreatePlugins(string code, MetadataReference[] references)
+            => await CreatePlugins(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Default), references);
+        
         /// <exception cref="Exception"/>
-        public static IEnumerable<Plugin> CreatePlugins(string code, CSharpParseOptions options, MetadataReference[] references)
+        public static async Task<IEnumerable<Plugin>> CreatePlugins(string code, CSharpParseOptions options, MetadataReference[] references)
         {
             var dllPath = GetNewDllPath();
             if (dllPath is null)
                 return new Plugin[0];
 
             using var stream = File.Create(dllPath.Value.dllPath);
-            return CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
+            return await CreatePlugins(code, dllPath.Value.dllName, codeFileName, options, references, stream);
         }
 
         public static void RemoveAll() => CreateRemoveAllFile();
@@ -106,13 +109,12 @@ namespace Shos.PluginSample
         }
 
         /// <exception cref="Exception"/>
-        static IEnumerable<Plugin> CreatePlugins(string code, string dllPath, string codeFileName, CSharpParseOptions options, MetadataReference[] references, FileStream stream)
+        static async Task<IEnumerable<Plugin>> CreatePlugins(string code, string dllPath, string codeFileName, CSharpParseOptions options, MetadataReference[] references, FileStream stream)
         {
             var syntaxTree         = CSharpSyntaxTree.ParseText(code, options, codeFileName);
             var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             var compilation        = CSharpCompilation.Create(dllPath, new[] { syntaxTree }, references, compilationOptions);
-
-            var emitResult = compilation.Emit(stream);
+            var emitResult         = await Task.Run(() => compilation.Emit(stream));
             if (emitResult.Success) {
                 stream.Seek(0, SeekOrigin.Begin);
                 var assembly = AssemblyLoadContext.Default.LoadFromStream(stream);
@@ -162,7 +164,7 @@ namespace Shos.PluginSample
             string dllFolderName           = DllFolderPath;
             
             for (var number = 1; number <= maximumDllFileNumber; number++) {
-                var dllFileName = $"{WithCurrentDateTime("Plugin")}.{number:D2}.dll";
+                var dllFileName = $"{WithCurrentDateTime(pluginFileNameWithoutExtension)}.{number:D2}.dll";
                 var dllFilePath = Path.Combine(dllFolderName, dllFileName);
                 if (!File.Exists(dllFilePath))
                     return (dllFileName, dllFilePath);
@@ -179,7 +181,7 @@ namespace Shos.PluginSample
         static string GetStringFromCurrentDateTime()
         {
             var dateTime = DateTime.Now.ToUniversalTime();
-            return $"{dateTime.Year:D4}.{dateTime.Month:D2}.{dateTime.Minute:D2}.{dateTime.Second:D2}.{dateTime.Millisecond:D3}";
+            return $"{dateTime.Year:D4}.{dateTime.Month:D2}.{dateTime.Day:D2}.{dateTime.Minute:D2}.{dateTime.Second:D2}.{dateTime.Millisecond:D3}";
         }
     }
 }
