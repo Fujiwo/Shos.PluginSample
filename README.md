@@ -1,4 +1,4 @@
-# Shos.PluninSample
+# Shos.PluginSample
 
 Sample to dynamically add plug-ins from C# source code.
 
